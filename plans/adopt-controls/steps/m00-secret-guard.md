@@ -1,6 +1,6 @@
 ---
 id: m00-secret-guard
-status: pending
+status: done
 depends_on: []
 touches:
   - scripts/secret_guard.py
@@ -15,7 +15,7 @@ tier: light
 gate: python3 -m unittest discover -s tests -p 'test_secret_guard.py' -v && bash scripts/install_hooks.sh --self-test && python3 scripts/secret_guard.py --tracked && grep -q 'secret_guard.py --tracked' .github/workflows/context.yml && grep -q 'secret_guard.py --range' .github/workflows/context.yml && python3 scripts/build_indexes.py --check && python3 scripts/check_context.py && git diff --check
 claimed_by: ""
 claimed_at: ""
-evidence: ""
+evidence: "Gate command passed on 2026-11-23: 21 guard tests ok, hook self-test ok, tracked scan 0 findings, indexes fresh, check_context ok. actions/checkout pinned to v4.4.0 SHA."
 ---
 
 # Install the secret guard, the hooks and the CI step
