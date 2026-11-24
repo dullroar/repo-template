@@ -1,6 +1,6 @@
 ---
 id: m01-shim
-status: pending
+status: done
 depends_on: [m00-secret-guard]
 touches:
   - scripts/check_context.py
@@ -14,7 +14,7 @@ lane: none
 gate: python3 -m unittest discover -s tests -v && python3 scripts/check_context.py && python3 scripts/build_indexes.py --check && grep -q '651543baf8d308ec4e0ca0e69fb12a52fb0d6848' scripts/controls-requirements.txt && python3 scripts/secret_guard.py --tracked && git diff --check
 claimed_by: ""
 claimed_at: ""
-evidence: ""
+evidence: "2026-11-23: adopt audit, plan, apply run. Gate passed (unittest 21 tests ok, check_context.py ok, build_indexes.py --check ok, pin grep ok, secret_guard --tracked 0 findings, git diff --check ok)."
 ---
 
 # Adopt the pinned library with `adopt apply`
