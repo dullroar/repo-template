@@ -11,9 +11,9 @@ touches:
   - plans/adopt-controls/steps/m02-agent-rules.md
 lane: none
 gate: python3 -m unittest discover -s tests -v && python3 scripts/check_context.py && for key in agent fallback run tier acceptance_controls; do grep -q "$key" plans/for-each-plan/steps/00-step-template.md || exit 1; done && grep -qi 'operator' plans/for-each-plan/steps/00-step-template.md && grep -q 'disable' AGENTS.md && test -s docs/routing.md && grep -q 'routing.md' docs/README.md && git diff --check
-claimed_by: ""
-claimed_at: ""
-evidence: "Gate (unit tests, check_context.py, key greps, git diff --check) passed on 2026-11-23."
+claimed_by: claude cli-default
+claimed_at: "2026-11-24T01:43:32Z"
+evidence: gate passed 2026-11-24 (driver-verified)
 ---
 
 # Add the agent rules for controls and routing, and the plan template fields
