@@ -1,6 +1,6 @@
 ---
 id: m02-agent-rules
-status: pending
+status: done
 depends_on: [m00-secret-guard]
 touches:
   - AGENTS.md
@@ -13,7 +13,7 @@ lane: none
 gate: python3 -m unittest discover -s tests -v && python3 scripts/check_context.py && for key in agent fallback run tier acceptance_controls; do grep -q "$key" plans/for-each-plan/steps/00-step-template.md || exit 1; done && grep -qi 'operator' plans/for-each-plan/steps/00-step-template.md && grep -q 'disable' AGENTS.md && test -s docs/routing.md && grep -q 'routing.md' docs/README.md && git diff --check
 claimed_by: ""
 claimed_at: ""
-evidence: ""
+evidence: "Gate (unit tests, check_context.py, key greps, git diff --check) passed on 2026-11-23."
 ---
 
 # Add the agent rules for controls and routing, and the plan template fields
