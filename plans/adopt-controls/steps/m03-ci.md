@@ -1,6 +1,6 @@
 ---
 id: m03-ci
-status: pending
+status: done
 depends_on: [m01-shim]
 touches:
   - .github/workflows/context.yml
@@ -10,7 +10,7 @@ lane: none
 gate: python3 -m unittest discover -s tests -v && python3 scripts/check_context.py && python3 scripts/secret_guard.py --tracked && git diff --check
 claimed_by: ""
 claimed_at: ""
-evidence: ""
+evidence: "Gate (unittest discover, check_context.py, secret_guard.py --tracked, git diff --check) passed on 2026-11-23. The old check_context step was removed: the ci profile covers it."
 ---
 
 # Make the CI job pinned, read-only and stable
