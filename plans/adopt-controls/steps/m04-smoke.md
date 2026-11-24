@@ -1,6 +1,6 @@
 ---
 id: m04-smoke
-status: pending
+status: done
 depends_on: [m01-shim, m02-agent-rules, m03-ci]
 touches:
   - tests/test_template_smoke.py
@@ -15,7 +15,7 @@ lane: none
 gate: python3 -m unittest discover -s tests -v && python3 scripts/check_context.py && python3 scripts/build_indexes.py --check && python3 scripts/secret_guard.py --tracked && git diff --check
 claimed_by: ""
 claimed_at: ""
-evidence: ""
+evidence: "Gate (unittest discover, check_context, build_indexes --check, secret_guard --tracked, git diff --check) passed on 2026-11-23. 31 tests ok, including fresh-copy and old-copy smoke tests. Deleted check_plan.py, check_links.py, scan_secrets.py. Kept ctx_common.py (build_indexes.py imports it)."
 ---
 
 # Prove the library on a fresh copy and an old copy, then delete the old checks
