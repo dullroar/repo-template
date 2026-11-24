@@ -12,9 +12,9 @@ touches:
   - plans/adopt-controls/steps/m01-shim.md
 lane: none
 gate: python3 -m unittest discover -s tests -v && python3 scripts/check_context.py && python3 scripts/build_indexes.py --check && grep -q '651543baf8d308ec4e0ca0e69fb12a52fb0d6848' scripts/controls-requirements.txt && python3 scripts/secret_guard.py --tracked && git diff --check
-claimed_by: ""
-claimed_at: ""
-evidence: "2026-11-23: adopt audit, plan, apply run. Gate passed (unittest 21 tests ok, check_context.py ok, build_indexes.py --check ok, pin grep ok, secret_guard --tracked 0 findings, git diff --check ok)."
+claimed_by: claude cli-default
+claimed_at: "2026-11-24T01:45:50Z"
+evidence: gate passed 2026-11-24 (driver-verified)
 ---
 
 # Adopt the pinned library with `adopt apply`
