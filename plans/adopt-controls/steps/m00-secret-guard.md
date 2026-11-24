@@ -1,6 +1,6 @@
 ---
 id: m00-secret-guard
-status: pending
+status: done
 depends_on: []
 touches:
   - scripts/secret_guard.py
@@ -13,9 +13,9 @@ touches:
 lane: none
 tier: light
 gate: python3 -m unittest discover -s tests -p 'test_secret_guard.py' -v && bash scripts/install_hooks.sh --self-test && python3 scripts/secret_guard.py --tracked && grep -q 'secret_guard.py --tracked' .github/workflows/context.yml && grep -q 'secret_guard.py --range' .github/workflows/context.yml && python3 scripts/build_indexes.py --check && python3 scripts/check_context.py && git diff --check
-claimed_by: ""
-claimed_at: ""
-evidence: ""
+claimed_by: claude cli-default
+claimed_at: "2026-11-24T01:42:45Z"
+evidence: gate passed 2026-11-24 (driver-verified)
 ---
 
 # Install the secret guard, the hooks and the CI step

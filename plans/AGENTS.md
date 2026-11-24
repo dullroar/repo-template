@@ -19,6 +19,8 @@ Read the list. Open only the plans whose "Read me when" line matches your task.
 
 <!-- BEGIN GENERATED INDEX -->
 
+* [adopt-controls/plan.md](./adopt-controls/plan.md)
+  Read me when: you adopt the pinned deterministic-controls library, the secret guard, the agent rules for controls and routing, and the routing fields in repo-template.
 * [for-each-plan/plan.md](./for-each-plan/plan.md)
   Read me when: you want to see the format of a plan. (Template only. Copy this folder to start a plan.)
 
