@@ -8,9 +8,9 @@ touches:
   - plans/adopt-controls/steps/m03-ci.md
 lane: none
 gate: python3 -m unittest discover -s tests -v && python3 scripts/check_context.py && python3 scripts/secret_guard.py --tracked && git diff --check
-claimed_by: ""
-claimed_at: ""
-evidence: "Gate (unittest discover, check_context.py, secret_guard.py --tracked, git diff --check) passed on 2026-11-23. The old check_context step was removed: the ci profile covers it."
+claimed_by: claude cli-default
+claimed_at: "2026-11-24T01:46:45Z"
+evidence: gate passed 2026-11-24 (driver-verified)
 ---
 
 # Make the CI job pinned, read-only and stable
