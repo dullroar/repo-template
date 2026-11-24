@@ -17,17 +17,17 @@ Read the list. Run only the scripts whose "Run me when" line matches your task.
   Run me when: I added, renamed, deleted or changed the gist of a memory, a plan or a script, and before every pull request.
 * [check_context.py](./check_context.py)
   Run me when: I changed any context file, and before every pull request.
-* [check_links.py](./check_links.py)
-  Run me when: I changed or moved any Markdown file, and before every pull request.
-* [check_plan.py](./check_plan.py)
-  Run me when: I created or changed a plan or a step, and before a plan loop starts.
+* [controls-requirements.txt](./controls-requirements.txt)
+  Run me when: I change the pinned version of the controls library.
 * [ctx_common.py](./ctx_common.py)
   Run me when: never directly. Other scripts in this folder import it.
 * [hello-listing.ps1](./hello-listing.ps1)
   Run me when: I want to prove the PowerShell or Windows Sandbox setup works. (Template only.)
 * [hello-listing.sh](./hello-listing.sh)
   Run me when: I want to prove the container or shell setup works. (Template only.)
-* [scan_secrets.py](./scan_secrets.py)
-  Run me when: I changed AGENTS.md, CLAUDE.md, docs/, memory/ or plans/, and before every pull request.
+* [install_hooks.sh](./install_hooks.sh)
+  Run me when: I cloned a repository, or the hooks are missing (check with --check).
+* [secret_guard.py](./secret_guard.py)
+  Run me when: before a commit or a push (the hooks do it), in CI, before a merge, or to audit a repository for secrets.
 
 <!-- END GENERATED INDEX -->

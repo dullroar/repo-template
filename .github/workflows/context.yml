@@ -3,10 +3,37 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
 jobs:
-  check:
+  context:
+    name: context
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Check indexes, plans, links and secrets
-        run: python3 scripts/check_context.py
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      - name: Secret guard on all tracked files
+        run: python3 scripts/secret_guard.py --tracked
+      - name: Secret guard on every commit of the pull request
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 scripts/secret_guard.py --range "$BASE_SHA..$HEAD_SHA"
+      - name: Install the pinned controls library
+        run: |
+          python3 -m venv "$RUNNER_TEMP/controls-venv"
+          . "$RUNNER_TEMP/controls-venv/bin/activate"
+          sh scripts/controls-requirements.txt
+          echo "$RUNNER_TEMP/controls-venv/bin" >> "$GITHUB_PATH"
+      - name: Run the ci profile of the controls
+        run: python3 -m deterministic_controls check --root . --profile ci --format json --report "$RUNNER_TEMP/controls.json"
+      - name: Upload the controls report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: controls-report
+          path: ${{ runner.temp }}/controls.json
+          if-no-files-found: warn
