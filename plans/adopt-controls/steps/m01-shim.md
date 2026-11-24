@@ -1,6 +1,6 @@
 ---
 id: m01-shim
-status: pending
+status: blocked
 depends_on: [m00-secret-guard]
 touches:
   - scripts/check_context.py
