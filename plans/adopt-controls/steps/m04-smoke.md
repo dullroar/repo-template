@@ -13,9 +13,9 @@ touches:
   - plans/adopt-controls/steps/m04-smoke.md
 lane: none
 gate: python3 -m unittest discover -s tests -v && python3 scripts/check_context.py && python3 scripts/build_indexes.py --check && python3 scripts/secret_guard.py --tracked && git diff --check
-claimed_by: ""
-claimed_at: ""
-evidence: "Gate (unittest discover, check_context, build_indexes --check, secret_guard --tracked, git diff --check) passed on 2026-11-23. 31 tests ok, including fresh-copy and old-copy smoke tests. Deleted check_plan.py, check_links.py, scan_secrets.py. Kept ctx_common.py (build_indexes.py imports it)."
+claimed_by: claude cli-default
+claimed_at: "2026-11-24T01:48:24Z"
+evidence: gate passed 2026-11-24 (driver-verified)
 ---
 
 # Prove the library on a fresh copy and an old copy, then delete the old checks
