@@ -23,7 +23,8 @@ Create a new repository from it. Do not build products in it.
 2. **Start all work on a branch.** Never commit to `main` directly. This applies in a Git worktree too. A worktree does not replace a branch: create the branch first, or create the worktree with a new branch (`git worktree add -b <branch> <path>`).
 3. **Write documents in Simplified Technical English** (ASD-STE100), or close to it. Use short sentences, one idea in each, active voice, simple words and consistent terms. The readers are technical and worldwide. Many do not read English as a first language. This rule applies to all Markdown and other English text.
 4. **Do not push, publish or force-push** without authorization from the user.
-5. User instructions come first. If sources conflict, use this order: user, this file, the named plan, `docs/`, `memory/`, code and tests, old notes.
+5. **Do not weaken the controls.** You may run the local checks at any time. CI runs them in all cases. Do not change or disable the controls, the pin (`scripts/controls-requirements.txt`), `controls.toml` or the workflows to make an unrelated task pass. The driver checks the gate and `touches` of each step. A change to the gate or a file outside `touches` fails the step. For routing, see `docs/routing.md`.
+6. User instructions come first. If sources conflict, use this order: user, this file, the named plan, `docs/`, `memory/`, code and tests, old notes.
 
 ## Directory structure
 
