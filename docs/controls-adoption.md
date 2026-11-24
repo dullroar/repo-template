@@ -9,13 +9,35 @@ This repository uses the library `deterministic-controls`. The library is pinned
 - The first run for a commit needs the network. If the library cannot run, the shim exits with `2`. It never passes without a result. It never uses the old scripts instead.
 - The shim prints `ok  <script>` or `FAIL <script>` for each group of checks. Exit `0` means pass. Exit `1` means a check failed.
 - `scripts/build_indexes.py` stays. It writes the indexes.
-- The old scripts `check_plan.py`, `check_links.py`, `scan_secrets.py` and `ctx_common.py` stay for now. Step `m04` of the plan `adopt-controls` deletes them after it proves that the results are the same.
+- The shim still prints the old script names (`check_plan.py`, `check_links.py`, `scan_secrets.py`) as group labels. The scripts themselves are deleted. See "Old scripts" below.
 
 ## How the adoption was made
 
 1. `adopt audit` classified the repository as partial. The shim, the pin, the manifest and the CI job were missing.
 2. `adopt plan` showed a dry run.
 3. `adopt apply` wrote the workflow job, `controls.toml`, the shim and the pin. It ran on a clean tree, on the step branch.
+
+## Smoke test and old scripts
+
+The test `tests/test_template_smoke.py` proves that the library gives the same result as the old scripts:
+
+- Fresh copy: the tracked files of `HEAD` in a new Git repository. The check passes. A plan step without `gate` makes it fail with exit `1` and the rule ID `plans.schema`. After the step is removed, it passes again.
+- Old copy: the template tree before this plan, in a new Git repository. The old scripts pass on the clean tree and fail (exit `1`) on the same bad plan. After `adopt apply` and the new shim, the exit codes are the same, and the library reports `plans.schema`.
+- The shim prints only the group names. The test reads the rule ID from the JSON output of the library.
+- If the library is not available (no network and no cache), the tests skip with `library not available`.
+
+Old scripts, after the equivalence tests passed:
+
+| Script | Result | Reason |
+| --- | --- | --- |
+| `scripts/check_plan.py` | deleted | The library checks `plans.schema` and `plans.graph`. |
+| `scripts/check_links.py` | deleted | The library checks `markdown.local-links`. |
+| `scripts/scan_secrets.py` | deleted | The library checks `security.secrets` and `security.personal-data`. |
+| `scripts/ctx_common.py` | kept | `scripts/build_indexes.py` imports it. |
+| `scripts/build_indexes.py` | kept | It writes the indexes. The library does not write them. |
+| `scripts/check_context.py` | kept | It is the shim. |
+
+One gap: `adopt apply` writes `scripts/controls-requirements.txt` without a `Run me when:` line. `scripts/build_indexes.py` then fails. The test adds the line by hand, as step `m01` did.
 
 ## Where the tools did not fit
 

@@ -1,6 +1,6 @@
 ---
 id: m04-smoke
-status: pending
+status: done
 depends_on: [m01-shim, m02-agent-rules, m03-ci]
 touches:
   - tests/test_template_smoke.py
@@ -13,9 +13,9 @@ touches:
   - plans/adopt-controls/steps/m04-smoke.md
 lane: none
 gate: python3 -m unittest discover -s tests -v && python3 scripts/check_context.py && python3 scripts/build_indexes.py --check && python3 scripts/secret_guard.py --tracked && git diff --check
-claimed_by: ""
-claimed_at: ""
-evidence: ""
+claimed_by: claude cli-default
+claimed_at: "2026-11-24T01:48:24Z"
+evidence: gate passed 2026-11-24 (driver-verified)
 ---
 
 # Prove the library on a fresh copy and an old copy, then delete the old checks
