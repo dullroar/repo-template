@@ -1,6 +1,6 @@
 ---
 id: m01-shim
-status: blocked
+status: pending
 depends_on: [m00-secret-guard]
 touches:
   - scripts/check_context.py
@@ -47,6 +47,10 @@ This is the first real use of the adoption tools. Record each place where they d
 
 Set `status: done`. Fill `evidence` with the gate command, the result and the date.
 If you cannot finish, write "Resume notes" below. Keep the status `in_progress`.
+
+## Operator change (2026-11-23)
+
+The pinned library is already importable: the operator puts a checkout of release `v0.1.0` on `PYTHONPATH`. Run it as `python3 -m deterministic_controls adopt audit --root .`, then `adopt plan` and `adopt apply`. Do not create a virtual environment and do not run `pip install`: agent sessions may not install packages or use the network. The gate's shim may build its own cache environment; that runs in the driver, not in your session.
 
 ## Resume notes
 
