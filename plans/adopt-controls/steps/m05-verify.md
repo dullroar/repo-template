@@ -1,6 +1,6 @@
 ---
 id: m05-verify
-status: pending
+status: done
 depends_on: [m04-smoke]
 touches:
   - docs/controls-adoption.md
@@ -9,9 +9,9 @@ touches:
 lane: none
 tier: light
 gate: python3 -m unittest discover -s tests -v && python3 scripts/check_context.py && python3 scripts/build_indexes.py --check && python3 scripts/secret_guard.py --tracked && grep -q 'rollback' docs/controls-adoption.md && grep -q 'controls-adoption.md' docs/README.md && git diff --check
-claimed_by: ""
-claimed_at: ""
-evidence: ""
+claimed_by: claude cli-default
+claimed_at: "2026-11-24T01:49:54Z"
+evidence: gate passed 2026-11-24 (driver-verified)
 ---
 
 # Verify from a clean clone and write the receipt
