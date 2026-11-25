@@ -27,6 +27,22 @@ Read the list. Run only the scripts whose "Run me when" line matches your task.
   Run me when: I want to prove the container or shell setup works. (Template only.)
 * [install_hooks.sh](./install_hooks.sh)
   Run me when: I cloned a repository, or the hooks are missing (check with --check).
+* [prit-01-check.sh](./prit-01-check.sh)
+  Run me when: the user says "PR it" or runs /prit, as the first step, and again after you commit, discard or stash.
+* [prit-02-push.sh](./prit-02-push.sh)
+  Run me when: step 1 of /prit reported a clean tree, and the branch is not on the remote or has new commits.
+* [prit-03-open-pr.sh](./prit-03-open-pr.sh)
+  Run me when: step 2 of /prit pushed the branch, and you have a PR title and a PR body file.
+* [prit-04-merge.sh](./prit-04-merge.sh)
+  Run me when: step 3 of /prit opened or found the PR, and the user wants it merged.
+* [prit-05-cleanup.sh](./prit-05-cleanup.sh)
+  Run me when: step 4 of /prit merged the PR, or the user asks to remove obsolete branches.
+* [prit-install-into.sh](./prit-install-into.sh)
+  Run me when: I want to add the /prit skill to an existing repository (do it on a branch in that repository).
+* [prit-install-user.sh](./prit-install-user.sh)
+  Run me when: I want /prit in every repository on this machine, and after I change the skill.
+* [prit-lib.sh](./prit-lib.sh)
+  Run me when: never directly. The prit-*.sh scripts source it.
 * [secret_guard.py](./secret_guard.py)
   Run me when: before a commit or a push (the hooks do it), in CI, before a merge, or to audit a repository for secrets.
 
