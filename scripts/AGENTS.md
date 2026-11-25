@@ -39,6 +39,8 @@ Read the list. Run only the scripts whose "Run me when" line matches your task.
   Run me when: step 4 of /prit merged the PR, or the user asks to remove obsolete branches.
 * [prit-install-into.sh](./prit-install-into.sh)
   Run me when: I want to add the /prit skill to an existing repository (do it on a branch in that repository).
+* [prit-install-user.sh](./prit-install-user.sh)
+  Run me when: I want /prit in every repository on this machine, and after I change the skill.
 * [prit-lib.sh](./prit-lib.sh)
   Run me when: never directly. The prit-*.sh scripts source it.
 * [secret_guard.py](./secret_guard.py)

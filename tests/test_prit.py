@@ -318,10 +318,22 @@ class Install(PritBase):
         self.assertIn("CONFLICT", r.stderr)
         self.assertFalse((t / ".agents").exists())
 
-    def test_refuses_real_claude_skills_dir(self):
+    def test_claude_copy_is_real_file_not_link(self):
         t = self.target()
-        (t / ".claude/skills").mkdir(parents=True)
-        self.assertEqual(self.run_script("prit-install-into.sh", str(t)).returncode, 1)
+        self.run_script("prit-install-into.sh", str(t))
+        p = t / ".claude/skills/prit/SKILL.md"
+        self.assertFalse(p.is_symlink())
+        self.assertFalse((t / ".claude/skills").is_symlink())
+
+
+class SkillCopies(unittest.TestCase):
+    def test_agents_and_claude_copies_are_identical_real_files(self):
+        root = SCRIPTS.parent
+        a = root / ".agents/skills/prit/SKILL.md"
+        c = root / ".claude/skills/prit/SKILL.md"
+        self.assertTrue(a.is_file() and not a.is_symlink())
+        self.assertTrue(c.is_file() and not c.is_symlink())
+        self.assertEqual(a.read_bytes(), c.read_bytes(), "copy .agents/skills/prit/SKILL.md to .claude/skills/prit/SKILL.md")
 
 
 if __name__ == "__main__":

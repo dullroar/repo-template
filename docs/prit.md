@@ -9,7 +9,7 @@ A skill does not bypass permission checks. The gain is that each step is one sim
 - Claude Code: type `/prit`.
 - Codex: ask for the `prit` skill, or say "PR it".
 
-The skill is in `.agents/skills/prit/SKILL.md`. `.claude/skills` is a symbolic link to `.agents/skills`, so both agents read one copy.
+The skill has two real copies: `.agents/skills/prit/SKILL.md` (Codex) and `.claude/skills/prit/SKILL.md` (Claude Code). There is no symbolic link, because links fail on some Windows checkouts. `.agents/skills/prit/SKILL.md` is the master. After you edit it, copy it to the other place. A test fails if the two differ.
 
 ## Steps
 
@@ -45,4 +45,8 @@ The target is 1500 characters.
 
 ## Install in another repository
 
-Run `scripts/prit-install-into.sh <path-of-repository>`. It copies the skill and the scripts, and it never overwrites a different file.
+Run `scripts/prit-install-into.sh <path-of-repository>`. It copies the skill (both copies) and the scripts, and it never overwrites a different file.
+
+## Install for your user account
+
+Run `scripts/prit-install-user.sh`. It copies `SKILL.md` to the user skill folders of Claude Code (`~/.claude/skills/prit`) and Codex (`~/.codex/skills/prit`). In WSL it also does this for the Windows profile (`%USERPROFILE%`). Use `--dry-run` to see the targets. The user copy holds only `SKILL.md`. It needs the `scripts/prit-*.sh` files in the repository where you run it.
