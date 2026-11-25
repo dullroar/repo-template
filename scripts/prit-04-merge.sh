@@ -5,7 +5,8 @@
 #
 # Usage: prit-04-merge.sh
 # Uses the REST API only. Stops if checks fail or are pending, or if the PR has conflicts. It never bypasses protection
-# (no --admin) and never deletes branches (step 5 does that).
+# (no --admin) and never deletes branches (step 5 does that). If the merge call fails, it polls the PR
+# for about a minute, because the host may finish the merge late.
 set -euo pipefail
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # shellcheck source=prit-lib.sh
@@ -48,8 +49,20 @@ done
 echo "mergeable_state: $ms"
 [ "$ms" != "dirty" ] || die "PR #$n has merge conflicts. Resolve them first."
 
-gh api "repos/{owner}/{repo}/pulls/$n/merge" -X PUT -f merge_method=squash -f sha="$sha" --jq .message
+# The host can return an error (502, 405 "already in progress", an empty reply) and still finish the
+# merge a little later. So an error here is not final: look at the PR before you decide. The call
+# carries the head SHA, so no other commit can be merged.
+merge_rc=0
+gh api "repos/{owner}/{repo}/pulls/$n/merge" -X PUT -f merge_method=squash -f sha="$sha" --jq .message || merge_rc=$?
 
-merged=$(gh api "repos/{owner}/{repo}/pulls/$n" --jq .merged)
-[ "$merged" = "true" ] || die "PR #$n is not merged after the merge call. Check it by hand."
+merged=false
+for _ in $(seq 1 "${PRIT_MERGE_POLLS:-12}"); do
+  merged=$(gh api "repos/{owner}/{repo}/pulls/$n" --jq .merged 2>/dev/null | head -n 1 || true)
+  [ "$merged" = "true" ] && break
+  [ "$merge_rc" -eq 0 ] && [ "$merged" = "false" ] && break
+  sleep "${PRIT_MERGE_WAIT:-5}"
+done
+if [ "$merged" != "true" ]; then
+  die "PR #$n is not merged (merge call exit $merge_rc). Check the PR on the host, then run this script again."
+fi
 echo "merge: PR #$n is MERGED (squash)"
