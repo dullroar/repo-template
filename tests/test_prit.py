@@ -293,5 +293,36 @@ class Cleanup(PritBase):
         self.assertIn("other", self.git("branch").stdout)
 
 
+class Install(PritBase):
+    def target(self):
+        t = self.tmp / "target"
+        sh(["git", "init", "-q", str(t)], self.tmp, self.env)
+        return t
+
+    def test_installs_and_is_idempotent(self):
+        t = self.target()
+        r = self.run_script("prit-install-into.sh", str(t))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue((t / ".agents/skills/prit/SKILL.md").is_file())
+        self.assertTrue((t / "scripts/prit-05-cleanup.sh").is_file())
+        self.assertTrue((t / ".claude/skills/prit/SKILL.md").is_file())
+        self.assertTrue((t / "plans/archive/.gitkeep").is_file())
+        self.assertEqual(self.run_script("prit-install-into.sh", str(t)).returncode, 0)
+
+    def test_refuses_to_overwrite_a_different_file(self):
+        t = self.target()
+        (t / "scripts").mkdir()
+        (t / "scripts/prit-lib.sh").write_text("different\n")
+        r = self.run_script("prit-install-into.sh", str(t))
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("CONFLICT", r.stderr)
+        self.assertFalse((t / ".agents").exists())
+
+    def test_refuses_real_claude_skills_dir(self):
+        t = self.target()
+        (t / ".claude/skills").mkdir(parents=True)
+        self.assertEqual(self.run_script("prit-install-into.sh", str(t)).returncode, 1)
+
+
 if __name__ == "__main__":
     unittest.main()

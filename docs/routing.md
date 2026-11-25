@@ -22,3 +22,4 @@ Full policy: <https://github.com/dullroar/ralph-looper/blob/main/docs/routing.md
 3. An `operator` gate must prove the human action in a file or a record.
 4. Agents have no credentials. Agents cannot push.
 5. The local model is not used in this program.
+6. The `/prit` skill is an `operator` action. The user starts it. It merges only when the required checks pass. Loop agents do not use it. See `prit.md`.
