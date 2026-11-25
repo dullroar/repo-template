@@ -57,6 +57,13 @@ FAKE_GH = textwrap.dedent(
         esac ;;
       "PUT repos/{owner}/{repo}/pulls/"*"/merge")
         n=${path%/merge}; n=${n##*/}
+        [ -f "$d/merge_fail_nomerge" ] && { echo "Server Error (HTTP 502)" >&2; exit 1; }
+        if [ -f "$d/merge_fail_late" ]; then
+          for f in "$d"/open_*; do
+            [ "$(cat "$f")" = "$n" ] && { b=${f##*/open_}; mv "$f" "$d/merged_$b"; }
+          done
+          echo MERGED >"$d/state_$n"; echo "Server Error (HTTP 502)" >&2; exit 1
+        fi
         for f in "$d"/open_*; do
           [ "$(cat "$f")" = "$n" ] && { b=${f##*/open_}; mv "$f" "$d/merged_$b"; }
         done
@@ -87,6 +94,7 @@ class PritBase(unittest.TestCase):
             PATH=f"{bindir}:{os.environ['PATH']}",
             FAKE_GH_DIR=str(self.fake),
             PRIT_CHECK_WAIT="0",
+            PRIT_MERGE_WAIT="0",
             GIT_AUTHOR_NAME="t",
             GIT_AUTHOR_EMAIL="t@example.invalid",
             GIT_COMMITTER_NAME="t",
@@ -267,6 +275,20 @@ class Merge(PritBase):
         r = self.run_script("prit-04-merge.sh")
         self.assertEqual(r.returncode, 1)
         self.assertIn("differs", r.stderr)
+
+    def test_error_reply_but_merge_finished_is_success(self):
+        self.open_pr()
+        (self.fake / "merge_fail_late").write_text("")
+        r = self.run_script("prit-04-merge.sh")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("MERGED", r.stdout)
+
+    def test_error_reply_and_no_merge_fails(self):
+        self.open_pr()
+        (self.fake / "merge_fail_nomerge").write_text("")
+        r = self.run_script("prit-04-merge.sh")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("not merged", r.stderr)
 
     def test_uses_rest_only(self):
         self.open_pr()
