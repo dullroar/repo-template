@@ -86,6 +86,7 @@ class PritBase(unittest.TestCase):
             os.environ,
             PATH=f"{bindir}:{os.environ['PATH']}",
             FAKE_GH_DIR=str(self.fake),
+            PRIT_CHECK_WAIT="0",
             GIT_AUTHOR_NAME="t",
             GIT_AUTHOR_EMAIL="t@example.invalid",
             GIT_COMMITTER_NAME="t",

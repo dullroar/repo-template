@@ -23,7 +23,13 @@ sha=$(git rev-parse HEAD)
 remote_sha=$(gh api "repos/{owner}/{repo}/pulls/$n" --jq .head.sha)
 [ "$sha" = "$remote_sha" ] || die "PR #$n head ($remote_sha) differs from the local HEAD ($sha). Push or pull first."
 
+# Checks may not be registered for a few seconds after a push. Before we accept "none", look again.
 ci=$(ci_state "$sha")
+for _ in 1 2 3 4; do
+  [ "$ci" = "none" ] || break
+  sleep "${PRIT_CHECK_WAIT:-5}"
+  ci=$(ci_state "$sha")
+done
 echo "checks: $ci"
 case "$ci" in
   pass) ;;
