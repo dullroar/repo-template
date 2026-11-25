@@ -38,8 +38,9 @@ git show-ref --verify --quiet "refs/remotes/origin/$branch" || die "origin/$bran
 existing=$(open_pr_number "$branch")
 if [ -n "$existing" ]; then
   echo "pr: PR #$existing is already open for $branch. Not changed."
-  gh pr view "$existing" --json url -q .url
+  pr_url "$existing"
   exit 0
 fi
 
-gh pr create --base "$def" --head "$branch" --title "$title" --body-file "$body_file"
+gh api 'repos/{owner}/{repo}/pulls' -X POST \
+  -f title="$title" -f head="$branch" -f base="$def" -F body=@"$body_file" --jq .html_url

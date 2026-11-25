@@ -12,37 +12,56 @@ from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 
-# A fake gh. State lives in files under $FAKE_GH_DIR:
-#   open_<branch> and merged_<branch> hold a PR number; state_<n> holds the PR state;
-#   checks_rc holds the exit code of "pr checks"; mstate holds mergeStateStatus.
+# A fake gh that understands only "gh api" (the scripts use REST only). It ignores the jq text
+# except to choose which value to print. State lives in files under $FAKE_GH_DIR:
+#   open_<branch> and merged_<branch> hold a PR number (slashes in names become __);
+#   state_<n> holds OPEN or MERGED; runs and status hold the CI words (default: none);
+#   mstate holds mergeable_state (default: clean); fail_create makes the create call fail.
 FAKE_GH = textwrap.dedent(
     r"""
     #!/usr/bin/env bash
     d="$FAKE_GH_DIR"
     echo "$*" >>"$d/calls.log"
-    get_head() { while [ $# -gt 0 ]; do [ "$1" = "--head" ] && { echo "${2//\//__}"; return; }; shift; done; }
-    get_flag() { local f=$1; shift; while [ $# -gt 0 ]; do [ "$1" = "$f" ] && { echo "$2"; return; }; shift; done; }
-    case "$1 $2" in
-      "repo view") echo main ;;
-      "pr list")
-        b=$(get_head "$@"); st=$(get_flag --state "$@")
-        [ -f "$d/${st}_$b" ] && cat "$d/${st}_$b" || true ;;
-      "pr create")
-        b=$(get_head "$@"); echo 7 >"$d/open_$b"; echo OPEN >"$d/state_7"
+    [ "$1" = "api" ] || { echo "fake gh: only api is supported: $*" >&2; exit 9; }
+    path=$2; shift 2
+    method=GET; jq=""; head=""
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        -X) method=$2; shift ;;
+        --jq) jq=$2; shift ;;
+        -f) case "$2" in head=*) head=${2#head=} ;; esac; shift ;;
+        -F) shift ;;
+      esac
+      shift
+    done
+    br() { local x=${1#*head=*:}; x=${x%%&*}; echo "${x//\//__}"; }
+    case "$method $path" in
+      "GET repos/{owner}/{repo}") echo main ;;
+      "GET repos/{owner}/{repo}/pulls?head="*)
+        b=$(br "$path")
+        case "$path" in *state=open*) k=open ;; *) k=merged ;; esac
+        [ -f "$d/${k}_$b" ] && cat "$d/${k}_$b" || true ;;
+      "POST repos/{owner}/{repo}/pulls")
+        [ -f "$d/fail_create" ] && { echo "boom" >&2; exit 1; }
+        echo 7 >"$d/open_${head//\//__}"; echo OPEN >"$d/state_7"
         echo "https://example.invalid/pr/7" ;;
-      "pr checks") [ -f "$d/checks_out" ] && cat "$d/checks_out"; exit "$(cat "$d/checks_rc" 2>/dev/null || echo 0)" ;;
-      "pr view")
-        case "$*" in
-          *url*) echo "https://example.invalid/pr/$3" ;;
-          *mergeStateStatus*) echo "$(cat "$d/state_$3") $(cat "$d/mstate" 2>/dev/null || echo CLEAN)" ;;
-          *) cat "$d/state_$3" ;;
+      "GET repos/{owner}/{repo}/commits/"*"/check-runs"*) cat "$d/runs" 2>/dev/null || echo none ;;
+      "GET repos/{owner}/{repo}/commits/"*"/status") cat "$d/status" 2>/dev/null || echo none ;;
+      "GET repos/{owner}/{repo}/pulls/"*)
+        n=${path##*/}
+        case "$jq" in
+          *html_url*) echo "https://example.invalid/pr/$n" ;;
+          *head.sha*) cat "$d/head_sha" ;;
+          *mergeable_state*) cat "$d/mstate" 2>/dev/null || echo clean ;;
+          *merged*) [ "$(cat "$d/state_$n")" = MERGED ] && echo true || echo false ;;
         esac ;;
-      "pr merge")
+      "PUT repos/{owner}/{repo}/pulls/"*"/merge")
+        n=${path%/merge}; n=${n##*/}
         for f in "$d"/open_*; do
-          [ "$(cat "$f")" = "$3" ] && { b=${f##*/open_}; mv "$f" "$d/merged_$b"; }
+          [ "$(cat "$f")" = "$n" ] && { b=${f##*/open_}; mv "$f" "$d/merged_$b"; }
         done
-        echo MERGED >"$d/state_$3" ;;
-      *) echo "fake gh: unsupported: $*" >&2; exit 9 ;;
+        echo MERGED >"$d/state_$n"; echo "Pull Request successfully merged" ;;
+      *) echo "fake gh: unsupported: $method $path" >&2; exit 9 ;;
     esac
     """
 ).lstrip()
@@ -183,7 +202,7 @@ class OpenPr(PritBase):
         r = self.run_script("prit-03-open-pr.sh", "t", self.body("x" * 4001))
         self.assertEqual(r.returncode, 1)
         self.assertIn("limit is 4000", r.stderr)
-        self.assertNotIn("pr create", self.calls())
+        self.assertNotIn("-X POST", self.calls())
 
     def test_requires_push_first(self):
         self.commit_file()
@@ -195,10 +214,10 @@ class OpenPr(PritBase):
         self.pushed()
         r = self.run_script("prit-03-open-pr.sh", "My title", self.body("ok"))
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn("pr create --base main --head feature/x --title My title", self.calls())
+        self.assertIn("api repos/{owner}/{repo}/pulls -X POST -f title=My title -f head=feature/x -f base=main", self.calls())
         r2 = self.run_script("prit-03-open-pr.sh", "My title", self.body("ok"))
         self.assertIn("already open", r2.stdout)
-        self.assertEqual(self.calls().count("pr create"), 1)
+        self.assertEqual(self.calls().count("-X POST"), 1)
 
 
 class Merge(PritBase):
@@ -207,6 +226,7 @@ class Merge(PritBase):
         self.run_script("prit-02-push.sh")
         (self.fake / "open_feature__x").write_text("7\n")
         (self.fake / "state_7").write_text("OPEN\n")
+        (self.fake / "head_sha").write_text(self.git("rev-parse", "HEAD").stdout)
 
     def test_no_pr(self):
         self.commit_file()
@@ -216,29 +236,48 @@ class Merge(PritBase):
 
     def test_failing_checks_block_merge(self):
         self.open_pr()
-        (self.fake / "checks_rc").write_text("1")
+        (self.fake / "runs").write_text("fail")
         r = self.run_script("prit-04-merge.sh")
         self.assertEqual(r.returncode, 1)
-        self.assertNotIn("pr merge", self.calls())
+        self.assertNotIn("-X PUT", self.calls())
 
     def test_pending_checks_block_merge(self):
         self.open_pr()
-        (self.fake / "checks_rc").write_text("8")
+        (self.fake / "runs").write_text("pending")
         r = self.run_script("prit-04-merge.sh")
         self.assertEqual(r.returncode, 1)
         self.assertIn("pending", r.stderr)
 
     def test_conflicts_block_merge(self):
         self.open_pr()
-        (self.fake / "mstate").write_text("DIRTY")
+        (self.fake / "mstate").write_text("dirty")
         self.assertEqual(self.run_script("prit-04-merge.sh").returncode, 1)
-        self.assertNotIn("pr merge", self.calls())
+        self.assertNotIn("-X PUT", self.calls())
+
+    def test_failing_commit_status_blocks_merge(self):
+        self.open_pr()
+        (self.fake / "status").write_text("failure")
+        self.assertEqual(self.run_script("prit-04-merge.sh").returncode, 1)
+        self.assertNotIn("-X PUT", self.calls())
+
+    def test_stale_pr_head_blocks_merge(self):
+        self.open_pr()
+        (self.fake / "head_sha").write_text("0" * 40 + "\n")
+        r = self.run_script("prit-04-merge.sh")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("differs", r.stderr)
+
+    def test_uses_rest_only(self):
+        self.open_pr()
+        self.run_script("prit-04-merge.sh")
+        self.assertNotIn("gh pr", self.calls())
+        self.assertNotIn("graphql", self.calls())
 
     def test_squash_merge_without_admin_or_delete(self):
         self.open_pr()
         r = self.run_script("prit-04-merge.sh")
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn("pr merge 7 --squash", self.calls())
+        self.assertIn("pulls/7/merge -X PUT -f merge_method=squash", self.calls())
         self.assertNotIn("--admin", self.calls())
         self.assertNotIn("--delete-branch", self.calls())
 

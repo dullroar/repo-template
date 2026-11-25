@@ -21,6 +21,10 @@ The skill has two real copies: `.agents/skills/prit/SKILL.md` (Codex) and `.clau
 | 4 | `scripts/prit-04-merge.sh` | Squash-merges when checks pass. Never bypasses protection. |
 | 5 | `scripts/prit-05-cleanup.sh` | Deletes the merged branch (remote and local) and lists stale branches. |
 
+## Why REST
+
+The scripts use only the REST API (`gh api`), never `gh pr ...`. Those commands use the GraphQL API. GraphQL had an outage while REST kept working. One path is easier to test than a main path and a fallback.
+
 ## Rules that the agent follows
 
 - At step 1, the agent summarizes each group of uncommitted files and recommends commit, discard or stash. You decide.
@@ -40,7 +44,7 @@ The target is 1500 characters.
 
 ## Not supported yet
 
-- Azure DevOps. Steps 3 to 5 call `gh`. A host check in `scripts/prit-lib.sh` and calls to `az repos pr` are the work to do.
+- Azure DevOps. Steps 3 to 5 call the GitHub REST API with `gh api`. A host check in `scripts/prit-lib.sh` and calls to `az repos pr` are the work to do.
 - Conflict resolution. The scripts stop and report.
 
 ## Install in another repository
